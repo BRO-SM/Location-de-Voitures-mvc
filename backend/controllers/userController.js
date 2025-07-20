@@ -53,9 +53,9 @@ const userController = {
 
       // Générer un token JWT
       const token = jwt.sign(
-        { user_id: user.user_id, role: user.role },
+        { user_id: user.user_id, first_name: user.first_name, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: '1d' }
+        { expiresIn: "1d" }
       );
 
       // Mettre à jour la date de dernière connexion

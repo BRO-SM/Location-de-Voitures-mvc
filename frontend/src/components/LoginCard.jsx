@@ -1,42 +1,61 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; //
+import Switgreeting from "./Switalert/switalert";
 
 const LoginCard = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [greeting, setGreeting] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/api/users/connexion", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password ,}),
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/users/connexion",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
-        // Save the token in localStorage
         localStorage.setItem("token", data.token);
-        setMessage("✅ Connexion réussie !");
-        // هنا يمكنك إعادة التوجيه أو أي فعل آخر بعد تسجيل الدخول
-        navigate("/admin");
+
+        const decoded = jwtDecode(data.token);
+        console.log(decoded.exp);
+
+        const role = decoded.role;
+        const first_name = decoded.first_name;
+
+        if (role === "admin") {
+          setGreeting("Bienvenue admin " + first_name);
+          setTimeout(() => navigate("/admin"), 1500);
+
+        } else if (role === "client") {
+          setGreeting("Bienvenue " + first_name);
+          setTimeout(() => navigate("/cars"), 1500);
+        }
       } else {
-        setMessage(data.message || "Erreur lors de la connexion");
+        setMessage(data.message || "Connexion echouée");
       }
     } catch (error) {
+      console.error("Error réseau ou serveur", error);
       setMessage("Erreur réseau ou serveur");
     }
   };
 
   return (
     <div className="container mt-5 mb-5">
+      {greeting && <Switgreeting title={greeting} />} 
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card shadow">
