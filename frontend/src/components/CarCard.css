@@ -1,0 +1,52 @@
+/* Styles de base pour la carte */
+.card {
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: none;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-img-top {
+  border-top-left-radius: 31px;
+  border-top-right-radius: 10px;
+}
+
+/* Styles pour le texte */
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Styles pour les icônes */
+.text-muted svg {
+  width: 16px;
+  color: #7f8c8d;
+}
+
+/* Styles pour le bouton */
+.btn-primary {
+  background-color: #3498db;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .card-title {
+    font-size: 1rem;
+  }
+  
+  .text-muted small {
+    font-size: 0.8rem;
+  }
+}
