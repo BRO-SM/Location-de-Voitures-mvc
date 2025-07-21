@@ -33,7 +33,7 @@ const carController = {
       await db.promise().query(
         `INSERT INTO Cars 
         (make, model, year, color, fuel, license_plate, price_per_day, status, description, seats, transmission) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? , ?, ?)`,
         [
           make,
           model,
@@ -49,12 +49,36 @@ const carController = {
         ]
       );
 
-      res.status(201).json({ message: "✅ Voiture ajoutée avec succès" });
+      res.status(201).json({ message: "✅ Voiture ajoutée avec succès",car_id:existing[0].car_id });
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: "❌ Erreur du serveur lors de l'ajout de la voiture" });
     }
   },
+ 
+  adimgcar: async (req, res) => {
+    const car_id = req.params.id;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: "Aucune image fournie" });
+    }
+
+    const image_url = file.filename;
+
+    try {
+      await db.promise().query(
+        "INSERT INTO imgs (car_id, image_url) VALUES (?, ?)",
+        [car_id, image_url]
+      );
+
+      res.status(201).json({ message: "✅ Image ajoutée avec succès", filename: image_url });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "❌ Erreur lors de l'enregistrement de l'image" });
+    }
+  },
+
 
   // Afficher toutes les voitures
   getAllCars: async (req, res) => {
@@ -67,7 +91,11 @@ const carController = {
     }
     const carIds = cars.map(car => car.car_id);
     // Get all images for these cars
-    const [images] = await db.promise().query("SELECT * FROM imgs WHERE car_id IN (?)", [carIds]);
+    const placeholders = carIds.map(() => '?').join(',');
+const [images] = await db.promise().query(
+  `SELECT * FROM imgs WHERE car_id IN (${placeholders})`,
+  carIds
+);
     const carsWithImages = cars.map(car => ({
       ...car,
       images: images.filter(img => img.car_id === car.car_id)

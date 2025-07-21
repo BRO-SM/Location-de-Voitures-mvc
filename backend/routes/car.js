@@ -12,6 +12,8 @@ router.get("/", carController.getAllCars);
 // Modifier une voiture
 router.put("/:id", authenticate, carController.updateCar);
 
+router.post('/addimg/:id', authenticate, upload.single('image'), carController.adimgcar);
+
 // Supprimer une voiture
 router.delete("/:id", authenticate, carController.deleteCar);
 

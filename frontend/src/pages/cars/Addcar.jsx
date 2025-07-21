@@ -27,22 +27,30 @@ export default function AddCar() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      const res = await axios.post("http://localhost:3000/api/cars", car);
-      if (res.data) {
-        alert(`La voiture ${car.make} ${car.model} a été ajoutée avec succès`);
-        navigate("/cars");
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    const token = localStorage.getItem('token');
+    const res = await axios.post("http://localhost:3000/api/cars/add", car, {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    } catch (error) {
-      console.error("Erreur lors de l'ajout:", error);
-      alert("Une erreur est survenue lors de l'ajout de la voiture");
-    } finally {
-      setIsSubmitting(false);
+    });
+
+    if (res.data) {
+      alert(`La voiture ${car.make} ${car.model} a été ajoutée avec succès`);
+      const car_id=res.data.car_id
+      
+      navigate("/cars");
     }
-  };
+  } catch (error) {
+    console.error("Erreur lors de l'ajout:", error);
+    alert(error?.response?.data?.message || "Une erreur est survenue lors de l'ajout de la voiture");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="container py-4">
