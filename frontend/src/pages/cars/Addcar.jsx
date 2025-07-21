@@ -10,6 +10,7 @@ export default function AddCar() {
     model: "",
     year: new Date().getFullYear(),
     color: "",
+    fuel: "",
     license_plate: "",
     price_per_day: "",
     description: "",
@@ -91,6 +92,21 @@ export default function AddCar() {
                       required
                     />
                   </div>
+                  <div className="col-md-4">
+                    <label className="form-label">Carburant*</label>
+                    <select
+                      className="form-select"
+                      name="fuel"
+                      value={car.fuel}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="Essence">Essence</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Hybride">Hybride</option>
+                      <option value="Electrique">Electrique</option>
+                    </select>
+                  </div>
 
                   {/* Année et Couleur */}
                   <div className="col-md-4">
@@ -105,6 +121,21 @@ export default function AddCar() {
                       onChange={handleChange}
                       required
                     />
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label">Nombre de places*</label>
+                    <select
+                      className="form-select"
+                      name="seats"
+                      value={car.seats}
+                      onChange={handleChange}
+                      required
+                    >
+                      {[2, 4, 5, 7, 9].map(num => (
+                        <option key={num} value={num}>{num} places</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div className="col-md-4">
@@ -148,20 +179,6 @@ export default function AddCar() {
                     </div>
                   </div>
                   
-                  <div className="col-md-4">
-                    <label className="form-label">Nombre de places*</label>
-                    <select
-                      className="form-select"
-                      name="seats"
-                      value={car.seats}
-                      onChange={handleChange}
-                      required
-                    >
-                      {[2, 4, 5, 7, 9].map(num => (
-                        <option key={num} value={num}>{num} places</option>
-                      ))}
-                    </select>
-                  </div>
                   
                   <div className="col-md-4">
                     <label className="form-label">Transmission*</label>

@@ -18,14 +18,21 @@ const CarCard = ({ car }) => {
     <div className="col-md-6 col-lg-4 mb-4">
       <div className="card h-100 shadow-sm">
         {/* Image de la voiture */}
-        <div className="card-img-top position-relative overflow-hidden" style={{ height: "200px" }}>
+        <div
+          className="card-img-top position-relative overflow-hidden"
+          style={{ height: "200px" }}
+        >
           <img
             src={mainImage?.img_url || "https://via.placeholder.com/300x200"}
             className="w-100 h-100 object-fit-cover"
             alt={`${car.make} ${car.model}`}
           />
-          <span className={`position-absolute top-0 start-0 m-2 badge ${car.status === "disponible" ? "bg-success" : "bg-danger"}`}>
-            {car.status }
+          <span
+            className={`position-absolute top-0 start-0 m-2 badge ${
+              car.status === "disponible" ? "bg-success" : "bg-danger"
+            }`}
+          >
+            {car.status}
           </span>
         </div>
 
@@ -61,13 +68,17 @@ const CarCard = ({ car }) => {
             <div className="col-6">
               <div className="d-flex align-items-center text-muted">
                 <FontAwesomeIcon icon={faCog} className="me-2" />
-                <small>{car.transmission === "automatic" ? "Automatique" : "Manuelle"}</small>
+                <small>
+                  {car.transmission === "automatic"
+                    ? "Automatique"
+                    : "Manuelle"}
+                </small>
               </div>
             </div>
             <div className="col-6">
               <div className="d-flex align-items-center text-muted">
                 <FontAwesomeIcon icon={faGasPump} className="me-2" />
-                <small>Essence</small>
+                <small>{car.fuel_type || "Non spécifié"}</small>
               </div>
             </div>
             <div className="col-6">

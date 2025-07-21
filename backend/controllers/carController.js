@@ -8,6 +8,7 @@ const carController = {
       model,
       year,
       color,
+      fuel,
       license_plate,
       price_per_day,
       status,
@@ -31,13 +32,14 @@ const carController = {
       // Insérer la voiture dans la base de données
       await db.promise().query(
         `INSERT INTO Cars 
-        (make, model, year, color, license_plate, price_per_day, status, description, seats, transmission) 
+        (make, model, year, color, fuel, license_plate, price_per_day, status, description, seats, transmission) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           make,
           model,
           year,
           color,
+          fuel,
           license_plate,
           price_per_day,
           status,
@@ -56,14 +58,27 @@ const carController = {
 
   // Afficher toutes les voitures
   getAllCars: async (req, res) => {
-    try {
-      const [cars] = await db.promise().query("SELECT * FROM Cars");
-      res.json(cars);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "❌ Erreur lors de la récupération des voitures" });
+  try {
+  
+    const [cars] = await db.promise().query("SELECT * FROM Cars");
+
+    if (cars.length === 0) {
+      return res.json([]); 
     }
-  },
+    const carIds = cars.map(car => car.car_id);
+    // Get all images for these cars
+    const [images] = await db.promise().query("SELECT * FROM imgs WHERE car_id IN (?)", [carIds]);
+    const carsWithImages = cars.map(car => ({
+      ...car,
+      images: images.filter(img => img.car_id === car.car_id)
+    }));
+
+    res.json(carsWithImages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "❌ Erreur lors de la récupération des voitures" });
+  }
+},
 
   // Modifier une voiture
   updateCar: async (req, res) => {
@@ -73,6 +88,7 @@ const carController = {
       model,
       year,
       color,
+      fuel,
       license_plate,
       price_per_day,
       status,
@@ -84,7 +100,7 @@ const carController = {
     try {
       await db.promise().query(
         `UPDATE Cars SET 
-        make = ?, model = ?, year = ?, color = ?, license_plate = ?, 
+        make = ?, model = ?, year = ?, color = ? , fuel = ?, license_plate = ?, 
         price_per_day = ?, status = ?, description = ?, seats = ?, transmission = ?
         WHERE car_id = ?`,
         [
@@ -92,6 +108,7 @@ const carController = {
           model,
           year,
           color,
+          fuel,
           license_plate,
           price_per_day,
           status,

@@ -26,22 +26,22 @@ CREATE TABLE Cars (
     make VARCHAR(50) NOT NULL,
     model VARCHAR(50) NOT NULL,
     year INT NOT NULL ,  
-    color VARCHAR(50) NOT NULL,
     license_plate VARCHAR(20) NOT NULL UNIQUE,  
+    color VARCHAR(50) NOT NULL,
+    fuel ENUM('Essence', 'Diesel','Hybride', 'Electrique') DEFAULT 'Diesel',
     price_per_day DECIMAL(10,2) NOT NULL,
     status ENUM('disponible','reserve','indisponible','en maintenance') DEFAULT 'disponible',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     description TEXT,                   
     seats TINYINT,                      
     transmission ENUM('automatic','manual') DEFAULT'manual'
-    
 );
 
 -- IMG TABLE
 CREATE TABLE imgs (
     img_id INT AUTO_INCREMENT PRIMARY KEY,
     car_id INT NOT NULL,
-    img_url VARCHAR(255) NOT NULL,
+    img_url VARCHAR(255)  DEFAULT "../../public/cars-images/CarDefault.png",
     is_primary BOOLEAN DEFAULT FALSE,   
     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (car_id) REFERENCES Cars(car_id) ON DELETE CASCADE
