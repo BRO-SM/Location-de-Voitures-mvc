@@ -1,10 +1,13 @@
+// server.js
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const userRoutes = require('./routes/user');
 const carRoutes = require('./routes/car');
 const rentalRoutes = require('./routes/rental');
+
 
 const app = express();
 app.use(cors());
@@ -13,6 +16,7 @@ app.use(bodyParser.json());
 // Définition des routes principales de l'API
 app.use('/api/users', userRoutes);
 app.use('/api/cars', carRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use('/api/rentals', rentalRoutes);
 
 const PORT = process.env.PORT || 3000;

@@ -15,7 +15,7 @@ export default function AddCar() {
     price_per_day: "",
     description: "",
     seats: 5,
-    transmission: "Manuelle",
+    transmission: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,8 +41,13 @@ export default function AddCar() {
     if (res.data) {
       alert(`La voiture ${car.make} ${car.model} a été ajoutée avec succès`);
       const car_id=res.data.car_id
+      navigate(`/admin/add-car/image/${car_id}`);
+
       
-      navigate("/cars");
+    } else {
+      alert("Une erreur est survenue lors de l'ajout de la voiture");
+      
+      
     }
   } catch (error) {
     console.error("Erreur lors de l'ajout:", error);

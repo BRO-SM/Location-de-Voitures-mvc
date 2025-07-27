@@ -1,111 +1,84 @@
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faStar,
-  faGasPump,
-  faCar,
-  faCog,
-  faCalendarAlt,
-  faCarSide,
-  faPalette,
-  faIdCard
-} from "@fortawesome/free-solid-svg-icons";
+import React from "react";
+import { Link } from "react-router-dom";
+import { StarFill } from "react-bootstrap-icons"; // npm i react-bootstrap-icons
 
 const CarCard = ({ car }) => {
-  const mainImage = car.images?.find((img) => img.is_primary) || car.images?.[0];
+  const mainImage =
+    car.images?.find((img) => img.is_primary) || car.images?.[0];
 
   return (
     <div className="col-md-6 col-lg-4 mb-4">
-      <div className="card h-100 shadow-sm">
-        {/* Image de la voiture */}
-        <div
-          className="card-img-top position-relative overflow-hidden"
-          style={{ height: "200px" }}
-        >
+      <div className="card h-100 shadow-sm border-0">
+        {/* Image */}
+        <div className="position-relative">
           <img
-            src={mainImage?.img_url || "https://via.placeholder.com/300x200"}
-            className="w-100 h-100 object-fit-cover"
+            src={
+              mainImage?.img_url
+                ? `http://localhost:3000/uploads/cars/${mainImage.img_url}`
+                : "https://via.placeholder.com/400x250"
+            }
             alt={`${car.make} ${car.model}`}
+            className="card-img-top"
+            style={{ height: "200px", objectFit: "cover" }}
+            onError={(e) => {
+              e.target.src = "https://via.placeholder.com/400x250";
+              e.target.onerror = null;
+            }}
           />
+          {/* Badge disponibilité */}
           <span
-            className={`position-absolute top-0 start-0 m-2 badge ${
+            className={`badge position-absolute top-0 start-0 m-2 ${
               car.status === "disponible" ? "bg-success" : "bg-danger"
             }`}
           >
             {car.status}
           </span>
+          {/* Prix */}
+          <span className="badge bg-light text-primary position-absolute bottom-0 end-0 m-2 fw-bold">
+            {car.price_per_day} MAD / jour
+          </span>
         </div>
 
-        {/* Corps de la carte */}
+        {/* Détails */}
         <div className="card-body">
-          {/* Titre et prix */}
-          <div className="d-flex justify-content-between align-items-start mb-3">
-            <h5 className="card-title mb-0">
-              {car.make} {car.model} {car.year}
-            </h5>
-            <div className="text-primary fw-bold">
-              {car.price_per_day} DH/jour
-            </div>
-          </div>
+          <h5 className="card-title text-dark">
+            {car.make} {car.model} - {car.year}
+          </h5>
 
           {/* Évaluation */}
-          <div className="mb-3 text-warning">
-            <FontAwesomeIcon icon={faStar} />
-            <FontAwesomeIcon icon={faStar} />
-            <FontAwesomeIcon icon={faStar} />
-            <FontAwesomeIcon icon={faStar} />
-            <FontAwesomeIcon icon={faStar} />
+          <div className="mb-2 text-warning">
+            {[...Array(5)].map((_, i) => (
+              <StarFill key={i} className="me-1" />
+            ))}
           </div>
 
-          {/* Spécifications de la voiture */}
-          <div className="row g-2 mb-3">
-            <div className="col-6">
-              <div className="d-flex align-items-center text-muted">
-                <FontAwesomeIcon icon={faCar} className="me-2" />
-                <small>{car.seats} places</small>
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="d-flex align-items-center text-muted">
-                <FontAwesomeIcon icon={faCog} className="me-2" />
-                <small>
-                  {car.transmission === "automatic"
-                    ? "Automatique"
-                    : "Manuelle"}
-                </small>
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="d-flex align-items-center text-muted">
-                <FontAwesomeIcon icon={faGasPump} className="me-2" />
-                <small>{car.fuel_type || "Non spécifié"}</small>
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="d-flex align-items-center text-muted">
-                <FontAwesomeIcon icon={faCarSide} className="me-2" />
-                <small>{car.category || "Berline"}</small>
-              </div>
-            </div>
-          </div>
+          <ul className="list-unstyled small text-muted mb-3">
+            <li>
+              <strong>Transmission :</strong> {car.transmission}
+            </li>
+            <li>
+              <strong>Places :</strong> {car.seats}
+            </li>
+            <li>
+              <strong>Carburant :</strong> {car.fuel || "Non spécifié"}
+            </li>
+            <li>
+              <strong>Couleur :</strong> {car.color || "Non spécifié"}
+            </li>
+          </ul>
 
-          {/* Détails supplémentaires */}
-          <div className="mb-3">
-            <div className="d-flex align-items-center text-muted mb-1">
-              <FontAwesomeIcon icon={faPalette} className="me-2" />
-              <small>Couleur: {car.color || "Non spécifié"}</small>
-            </div>
-            <div className="d-flex align-items-center text-muted">
-              <FontAwesomeIcon icon={faIdCard} className="me-2" />
-              <small>Plaque: {car.license_plate || "Non spécifié"}</small>
-            </div>
-          </div>
-
-          {/* Bouton de réservation */}
-          <button className="btn btn-primary w-100">
-            <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+          <Link
+            to={`/carDetails/${car.car_id}`}
+            className="btn btn-outline-secondary w-100 m-1"
+          >
+            voir plus
+          </Link>
+          <Link
+            to={`/rental/create/${car.car_id}`}
+            className="btn btn-primary w-100 mt-1"
+          >
             Réserver maintenant
-          </button>
+          </Link>
         </div>
       </div>
     </div>

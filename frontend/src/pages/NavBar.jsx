@@ -1,21 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useAuth } from "../context/useAuth"; 
 
 export default function NavBar() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
-  // التحقق من وجود التوكن عند تحميل الصفحة
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token); // true إذا كان موجودًا
-  }, []);
-
-  // تسجيل الخروج
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsAuthenticated(false);
-    navigate("/login"); // توجيه إلى صفحة الدخول
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -25,14 +17,12 @@ export default function NavBar() {
           <NavLink className="navbar-brand text-danger" to="/">
             Location Auto
           </NavLink>
+
           <button
             className="navbar-toggler"
             type="button"
             data-bs-toggle="collapse"
             data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
           >
             <span className="navbar-toggler-icon"></span>
           </button>
@@ -40,40 +30,55 @@ export default function NavBar() {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav">
               <li className="nav-item">
-                <NavLink className="nav-link text-primary" to="/cars">
-                  Véhicules
-                </NavLink>
+                <NavLink className="nav-link" to="/cars">Véhicules</NavLink>
               </li>
+
+              {isAuthenticated && user?.role === "admin" && (
+                <>
+                  <li className="nav-item">
+                    <NavLink className="nav-link" to="/clients">Clients</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink className="nav-link" to="/reservations">Réservations</NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink className="nav-link" to="/dashboard">Dashboard</NavLink>
+                  </li>
+                </>
+              )}
+
+              {isAuthenticated && user?.role === "client" && (
+                <>
+                  <li className="nav-item">
+                    <NavLink className="nav-link" to="/my-bookings">Mes réservations</NavLink>
+                  </li>
+                </>
+              )}
+
               <li className="nav-item">
-                <NavLink className="nav-link text-primary" to="/clients">
-                  Clients
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink className="nav-link text-primary" to="/reservations">
-                  Réservations
-                </NavLink>
-              </li>
-              <li className="nav-item">
-                <NavLink className="nav-link text-primary" to="/contact">
-                  Contact
-                </NavLink>
+                <NavLink className="nav-link" to="/contact">Contact</NavLink>
               </li>
             </ul>
           </div>
 
-          {isAuthenticated ? (
-            <button
-              className="btn btn-outline-danger"
-              onClick={handleLogout}
-            >
-              Se déconnecter
-            </button>
-          ) : (
-            <NavLink className="btn btn-outline-primary" to="/login">
-              Se connecter
-            </NavLink>
-          )}
+          <div className="d-flex align-items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                <span className="text-secondary small">
+                  👋 {user.first_name} ({user.role})
+                </span>
+                <button className="btn btn-outline-danger" onClick={handleLogout}>
+                  Se déconnecter
+                </button>
+                
+              </>
+            ) : (
+              <NavLink className="btn btn-outline-primary" to="/login">
+                Se connecter
+              </NavLink>
+            )}
+          </div>
+          
         </div>
       </nav>
     </header>
