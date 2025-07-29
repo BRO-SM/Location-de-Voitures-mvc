@@ -9,7 +9,7 @@ const verifyToken = require('../middleware/verifyToken');
 router.post('/creer', authenticate, rentalController.createRental);
 
 // Obtenir toutes les réservations
-router.get('/', authenticate, rentalController.getRentals);
+router.get('/', verifyToken, rentalController.getRentals);
 
 // Mettre à jour le statut d'une réservation
 router.put('/:id/etat', authenticate, rentalController.updateRentalStatus);
@@ -20,5 +20,6 @@ router.delete('/:id', authenticate, rentalController.deleteRental);
 
 router.get('/my-bookings/:userId', authenticate, rentalController.getBookingsByUser);
 
+router.post('/addreview', authenticate, rentalController.addreview);
 
 module.exports = router;

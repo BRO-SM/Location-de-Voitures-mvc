@@ -15,6 +15,12 @@ import Addcarimg from "./pages/cars/Addcarimg";
 import RegisterForm from "./components/Auth/RegisterForm";
 import CreateRental from "./pages/rentals/CreateRental";
 import MyBookings from "./pages/rentals/My-bookings";
+import AddReview from "./pages/rentals/addreview";
+import Clients from "./pages/users/Clients";
+import UpdateClientsInfo from "./pages/users/UpdateClientsInfo";
+import MyProfile from "./pages/users/My-profile";
+import Reservations from "./pages/rentals/Reservations";
+
 
 
 
@@ -33,11 +39,16 @@ function App() {
         <Route path="/cars" element={<Cars />} />
         <Route path="/add-car" element={<Addcar />} />
         <Route path="/carDetails/:id" element={<CarDetails />} />
-        <Route path="/updateCar/:id" element={<UpdateCar />} />
+        <Route path="/UpdateCar/:id" element={<UpdateCar />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/admin/add-car/image/:id" element={<Addcarimg />} />
         <Route path="/rental/create/:car_id" element={<CreateRental />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/reservations" element={<Reservations/>} />
+        <Route path="/addreview/:id" element={<AddReview />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/users/clients/:id" element={<UpdateClientsInfo />} />
+        <Route path="/my-profile" element={<MyProfile />} />
         <Route path="*" element={<h1>404 Not Found</h1>} /> Route
       </Routes>
       <Footer />

@@ -1,17 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode"
+import { jwtDecode } from "jwt-decode";
 
-// Create auth context
 const AuthContext = createContext();
 
-// Hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
-// Provider component to wrap the app
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // will store { role, first_name, ... }
+  const [user, setUser] = useState(null);
 
-  // Check token on initial load
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -19,10 +15,10 @@ export const AuthProvider = ({ children }) => {
       try {
         const decoded = jwtDecode(token);
         setUser({
+          user_id: decoded.user_id, // ✅ أضف هذا
           role: decoded.role,
           first_name: decoded.first_name,
           exp: decoded.exp,
-          // any other values from token
         });
       } catch (err) {
         console.error("Invalid token", err);
@@ -32,7 +28,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Logout function
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);

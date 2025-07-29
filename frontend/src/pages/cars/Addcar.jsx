@@ -1,3 +1,4 @@
+//  src/pages/cars/Addcar.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +33,7 @@ export default function AddCar() {
 
   try {
     const token = localStorage.getItem('token');
-    const res = await axios.post("http://localhost:3000/api/cars/add", car, {
+    const res = await axios.post(`http://localhost:3000/api/cars/add`, car, {
       headers: {
         Authorization: `Bearer ${token}`
       }

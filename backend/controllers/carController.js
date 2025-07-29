@@ -1,5 +1,7 @@
+// controllers/carController.js
 const db = require("../db/connection");
 const upload = require("../middleware/upload");
+const { get } = require("../routes/rental");
 
 const carController = {
   // Ajouter une nouvelle voiture
@@ -19,7 +21,7 @@ const carController = {
     } = req.body;
 
     try {
-      // التحقق من لوحة الترخيص
+      // Vérifier si la plaque d'immatriculation est utilisée
       const [existing] = await db
         .promise()
         .query("SELECT * FROM Cars WHERE license_plate = ?", [license_plate]);
@@ -30,7 +32,7 @@ const carController = {
         });
       }
 
-      // إدراج السيارة الجديدة والحصول على النتيجة
+      // Insérer la voiture dans la base de données et obtenir le resultat
       const [result] = await db.promise().query(
         `INSERT INTO Cars 
         (make, model, year, color, fuel, license_plate, price_per_day, status, description, seats, transmission) 
@@ -43,23 +45,23 @@ const carController = {
           fuel,
           license_plate,
           price_per_day,
-          status || "disponible", // قيمة افتراضية
+          status || "disponible", // If status is not provided, set it to "disponible"
           description,
           seats,
           transmission,
         ]
       );
 
-      // استخدام result.insertId بدلاً من existing[0].car_id
+      // Envoyer une résponse de succès 
       res.status(201).json({
         message: "✅ Voiture ajoutée avec succès",
-        car_id: result.insertId, // هذا هو التصحيح الرئيسي
+        car_id: result.insertId, 
       });
     } catch (err) {
       console.error("Erreur détaillée:", err);
       res.status(500).json({
         message: "❌ Erreur du serveur lors de l'ajout de la voiture",
-        error: err.message, // إضافة تفاصيل الخطأ
+        error: err.message, // Ajouter le message d'erreur dans la résponse
       });
     }
   },
@@ -108,6 +110,35 @@ const carController = {
     }
   },
 
+  getCarImages: async (req, res) => {
+  const carId = req.params.car_id;
+  try {
+    const [images] = await db.promise().query(
+      "SELECT img_id, img_url FROM imgs WHERE car_id = ?",
+      [carId]
+    );
+    if (images.length === 0) {
+      return res.status(404).json({ message: "Aucune image trouvée pour cette voiture." });
+    }
+    res.json({ images }); // نرجع الصور في حقل images
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur serveur lors de récupération des images" });
+  }
+},
+
+deleteCarImage: async (req, res) => {
+  const imgId = req.params.imgId;
+  try {
+    await db.promise().query("DELETE FROM imgs WHERE img_id = ?", [imgId]);
+    res.json({ message: "🗑️ Image supprimée avec succès" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erreur lors de la suppression de l'image" });
+  }
+},
+
+
   // Afficher toutes les voitures
   getAllCars: async (req, res) => {
     try {
@@ -135,6 +166,53 @@ const carController = {
         .json({ message: "❌ Erreur lors de la récupération des voitures" });
     }
   },
+  // Afficher une voiture par ID
+getCarById: async (req, res) => {
+  const carId = req.params.id;
+
+  try {
+    // 1. Fetch car details by ID
+    const [car] = await db
+      .promise()
+      .query("SELECT * FROM Cars WHERE car_id = ?", [carId]);
+
+    if (car.length === 0) {
+      // Return 404 if car not found
+      return res.status(404).json({ message: "🚗 Car not found" });
+    }
+
+    // 2. Fetch images related to the car
+    const [images] = await db
+      .promise()
+      .query("SELECT * FROM imgs WHERE car_id = ?", [carId]);
+
+    // 3. Fetch reviews for the car, including user's full name
+    const [reviews] = await db
+      .promise()
+      .query(
+        `SELECT r.*, CONCAT(u.first_name, ' ', u.last_name) AS userName
+         FROM Review r
+         JOIN Users u ON r.user_id = u.user_id
+         WHERE r.car_id = ?
+         ORDER BY r.created_at DESC`,
+        [carId]
+      );
+
+    // 4. Combine car data with its images
+    const carWithImages = {
+      ...car[0],
+      images,
+    };
+
+    // 5. Send the combined data as JSON response
+    res.json({ car: carWithImages, reviews });
+  } catch (err) {
+    console.error("❌ SQL Error:", err);
+    // Return 500 if any error occurs during the query
+    res.status(500).json({ message: "❌ Error retrieving car data" });
+  }
+},
+
 
   // Modifier une voiture
   updateCar: async (req, res) => {

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/useAuth"; 
+import { useAuth } from "../context/useAuth";
 
 export default function NavBar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -30,19 +30,27 @@ export default function NavBar() {
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav">
               <li className="nav-item">
-                <NavLink className="nav-link" to="/cars">Véhicules</NavLink>
+                <NavLink className="nav-link" to="/cars">
+                  Véhicules
+                </NavLink>
               </li>
 
               {isAuthenticated && user?.role === "admin" && (
                 <>
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/clients">Clients</NavLink>
+                    <NavLink className="nav-link" to="/clients">
+                      Clients
+                    </NavLink>
                   </li>
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/reservations">Réservations</NavLink>
+                    <NavLink className="nav-link" to="/reservations">
+                      Réservations
+                    </NavLink>
                   </li>
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/dashboard">Dashboard</NavLink>
+                    <NavLink className="nav-link" to="/dashboard">
+                      Dashboard
+                    </NavLink>
                   </li>
                 </>
               )}
@@ -50,13 +58,24 @@ export default function NavBar() {
               {isAuthenticated && user?.role === "client" && (
                 <>
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/my-bookings">Mes réservations</NavLink>
+                    <NavLink className="nav-link" to="/my-bookings">
+                      Mes réservations
+                    </NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink className="nav-link" to="/my-profile">
+                      Mon profil
+                    </NavLink>
+
                   </li>
                 </>
+                
               )}
 
               <li className="nav-item">
-                <NavLink className="nav-link" to="/contact">Contact</NavLink>
+                <NavLink className="nav-link" to="/contact">
+                  Contact
+                </NavLink>
               </li>
             </ul>
           </div>
@@ -65,20 +84,26 @@ export default function NavBar() {
             {isAuthenticated ? (
               <>
                 <span className="text-secondary small">
-                  👋 {user.first_name} ({user.role})
+                  👋 {user.first_name} {user.role === "admin" && `(${user.role})`}
                 </span>
-                <button className="btn btn-outline-danger" onClick={handleLogout}>
+                <button
+                  className="btn btn-outline-danger"
+                  onClick={handleLogout}
+                >
                   Se déconnecter
                 </button>
-                
               </>
             ) : (
-              <NavLink className="btn btn-outline-primary" to="/login">
-                Se connecter
-              </NavLink>
+              <>
+                <NavLink className="btn btn-outline-primary" to="/login">
+                  Se connecter
+                </NavLink>
+                <NavLink to="/register" className="btn btn-outline-primary">
+                  Inscription
+                </NavLink>
+              </>
             )}
           </div>
-          
         </div>
       </nav>
     </header>
