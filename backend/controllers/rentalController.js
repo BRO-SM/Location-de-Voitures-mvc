@@ -57,7 +57,7 @@ const rentalController = {
  getRentals: (req, res) => {
   const query = `
     SELECT r.*, c.make, c.model, c.year, i.img_url,
-           u.first_name, u.last_name, u.email
+           u.first_name, u.last_name, u.email, u.phone_number
     FROM Rental r
     JOIN Cars c ON r.car_id = c.car_id
     LEFT JOIN (
@@ -74,6 +74,7 @@ const rentalController = {
     res.json(results);
   });
 },
+
 
 
   // Mettre à jour le statut
@@ -114,28 +115,29 @@ const rentalController = {
 
   // Supprimer une réservation
   deleteRental: (req, res) => {
-    const rentalId = req.params.id;
-    db.query(
-      "DELETE FROM Rental WHERE rental_id = ?",
-      [rentalId],
-      (err, result) => {
-        if (err) {
-          console.error(err);
-          return res
-            .status(500)
-            .json({ message: "❌ Erreur lors de la suppression" });
-        }
-
-        if (result.affectedRows === 0) {
-          return res
-            .status(404)
-            .json({ message: "🚫 Réservation non trouvée" });
-        }
-
-        res.json({ message: "🗑️ Réservation supprimée avec succès" });
+  const rentalId = req.params.id;
+  db.query(
+    "DELETE FROM Rental WHERE rental_id = ?",
+    [rentalId],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .json({ message: "❌ Erreur lors de la suppression" });
       }
-    );
-  },
+
+      if (result.affectedRows === 0) {
+        return res
+          .status(404)
+          .json({ message: "🚫 Réservation non trouvée" });
+      }
+
+      res.json({ message: "🗑️ Réservation supprimée avec succès" });
+    }
+  );
+},
+
 
   // Récupérer les réservations d’un utilisateur
   getBookingsByUser: (req, res) => {

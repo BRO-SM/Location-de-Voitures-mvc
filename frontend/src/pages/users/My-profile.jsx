@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/useAuth";
+import { useNavigate } from "react-router-dom";
+
 
 export default function MyProfile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -91,7 +94,9 @@ export default function MyProfile() {
               
               {/* Edit button */}
               <div className="text-center mt-4">
-                <button className="btn btn-primary px-4">
+                <button className="btn btn-primary px-4"
+                   onClick={() => navigate(`/users/clients/${user.user_id}`)}
+                >
                   <i className="bi bi-pencil-square me-2"></i>
                   Edit Profile
                 </button>

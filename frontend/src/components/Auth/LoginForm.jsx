@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; //
-import Switgreeting from "../UI/Alert";
+import Switgreeting from "../UI/switalert/Alert";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -42,7 +42,6 @@ const LoginForm = () => {
             navigate("/");
             window.location.reload(); // 🔁
           }, 1500);
-
         } else if (role === "client") {
           setGreeting("Bienvenue " + first_name);
           setTimeout(() => {

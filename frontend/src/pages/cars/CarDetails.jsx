@@ -73,7 +73,9 @@ const CarDetails = () => {
     return <div className="text-center py-20 text-gray-500">Chargement...</div>;
 
   if (!car)
-    return <div className="text-center py-20 text-red-500">Voiture introuvable</div>;
+    return (
+      <div className="text-center py-20 text-red-500">Voiture introuvable</div>
+    );
 
   return (
     <div className="container py-5">
@@ -172,17 +174,27 @@ const CarDetails = () => {
             <>
               {/* Client actions */}
               {user?.role === "client" && (
-                <button
-                  className={`btn btn-${
-                    car.status === "disponible" ? "primary" : "secondary"
-                  } w-100 mt-3`}
-                  onClick={() => navigate(`/rent/${car.car_id}`)}
-                  disabled={car.status !== "disponible"}
-                >
-                  {car.status === "disponible"
-                    ? "Réserver maintenant"
-                    : "Indisponible"}
-                </button>
+                <>
+                  <button
+                    className={`btn btn-${
+                      car.status === "disponible" ? "primary" : "secondary"
+                    } w-100 mt-3`}
+                    onClick={() => navigate(`/rent/${car.car_id}`)}
+                    disabled={car.status !== "disponible"}
+                  >
+                    {car.status === "disponible"
+                      ? "Réserver maintenant"
+                      : "Indisponible"}
+                  </button>
+
+                  {/* Add review */}
+                  <button
+                    className="btn btn-info w-100 mt-3 d-flex align-items-center justify-content-center"
+                    onClick={() => navigate(`/addreview/${car.car_id}`)}
+                  >
+                    Ajouter une critique
+                  </button>
+                </>
               )}
 
               {/* Admin actions */}

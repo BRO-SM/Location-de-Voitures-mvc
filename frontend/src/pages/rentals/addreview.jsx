@@ -1,13 +1,15 @@
-// frontend/src/pages/AddReview.jsx
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Star, StarHalf, StarOff } from "lucide-react"; // يمكنك استبدالها بـ أي مكتبة أيقونات أخرى مثل react-icons
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function AddReview() {
-  const { rentalId } = useParams(); // نجيب الـ rentalId من الرابط
+  const { rentalId } = useParams();
   const navigate = useNavigate();
 
   const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -16,73 +18,120 @@ export default function AddReview() {
     e.preventDefault();
     setError(null);
 
-    // تحقق بسيط
     if (rating < 1 || rating > 5) {
-      setError("La note doit être entre 1 et 5.");
+      setError("Veuillez sélectionner une note entre 1 et 5 étoiles.");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Vous devez être connecté pour ajouter une critique.");
       return;
     }
 
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Vous devez être connecté pour ajouter une critique.");
-        setLoading(false);
-        return;
-      }
 
-      // إرسال مراجعة للـ backend
       await axios.post(
-        "http://localhost:3000/api/addreview",
-        { rating, comment, rentalId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        "http://localhost:3000/api/rentals/addreview",
+        {
+          rating,
+          comment,
+          rentalId: Number(rentalId),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      // بعد النجاح، رجوع لصفحة الحجوزات مثلاً
-      navigate("/mybookings");
+      navigate("/my-bookings");
     } catch (err) {
-      setError("Erreur lors de l'envoi de la critique.");
+      console.error(err);
+      setError(
+        err.response?.data?.message || "Erreur lors de l'envoi de la critique."
+      );
+    } finally {
       setLoading(false);
     }
   };
 
+  const renderStars = () => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star
+          key={i}
+          size={32}
+          className={`me-1 cursor-pointer ${
+            (hoveredRating || rating) >= i ? "text-warning" : "text-muted"
+          }`}
+          onMouseEnter={() => setHoveredRating(i)}
+          onMouseLeave={() => setHoveredRating(0)}
+          onClick={() => setRating(i)}
+        />
+      );
+    }
+    return stars;
+  };
+
   return (
     <div className="container py-5">
-      <h2>Ajouter une critique pour la réservation #{rentalId}</h2>
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <h3 className="mb-4">Ajouter une critique pour la réservation #</h3>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+          {error && (
+            <div className="alert alert-danger d-flex justify-content-between align-items-center">
+              {error}
+              <button className="btn-close" onClick={() => setError(null)} />
+            </div>
+          )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="rating" className="form-label">Note (1-5)</label>
-          <input
-            type="number"
-            id="rating"
-            className="form-control"
-            min="1"
-            max="5"
-            value={rating}
-            onChange={(e) => setRating(Number(e.target.value))}
-            required
-          />
+          <form onSubmit={handleSubmit}>
+            {/* Rating */}
+            <div className="mb-3">
+              <label className="form-label fw-bold">Note :</label>
+              <div>{renderStars()}</div>
+            </div>
+
+            {/* Comment */}
+            <div className="mb-3">
+              <label htmlFor="comment" className="form-label fw-bold">
+                Commentaire :
+              </label>
+              <textarea
+                id="comment"
+                className="form-control"
+                rows="4"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Votre avis ici..."
+              ></textarea>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              className="btn btn-primary d-flex align-items-center"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                  ></span>
+                  Envoi...
+                </>
+              ) : (
+                "Envoyer la critique"
+              )}
+            </button>
+          </form>
         </div>
-
-        <div className="mb-3">
-          <label htmlFor="comment" className="form-label">Commentaire</label>
-          <textarea
-            id="comment"
-            className="form-control"
-            rows="4"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Votre avis ici..."
-          ></textarea>
-        </div>
-
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Envoi..." : "Envoyer la critique"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

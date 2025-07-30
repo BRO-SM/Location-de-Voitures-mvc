@@ -1,5 +1,7 @@
+// src/context/useAuth.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import e from "cors";
 
 const AuthContext = createContext();
 
@@ -15,9 +17,10 @@ export const AuthProvider = ({ children }) => {
       try {
         const decoded = jwtDecode(token);
         setUser({
-          user_id: decoded.user_id, // ✅ أضف هذا
+          user_id: decoded.user_id, 
           role: decoded.role,
           first_name: decoded.first_name,
+          email: decoded.email,
           exp: decoded.exp,
         });
       } catch (err) {

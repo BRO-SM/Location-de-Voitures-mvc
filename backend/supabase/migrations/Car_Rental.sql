@@ -70,14 +70,29 @@ CREATE TABLE Review (
     review_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     car_id INT NOT NULL,
-    rental_id INT NOT NULL,
+    rental_id INT,  
     rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (car_id) REFERENCES Cars(car_id),
-    FOREIGN KEY (rental_id) REFERENCES Rental(rental_id)
+    FOREIGN KEY (rental_id) REFERENCES Rental(rental_id) ON DELETE SET NULL
 );
+
+CREATE TABLE Contact (
+  contact_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  recipient_email VARCHAR(100), 
+  message TEXT NOT NULL,
+  reply TEXT,                     
+  replied_by VARCHAR(100),        
+  replied_at TIMESTAMP NULL DEFAULT NULL, 
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
+);
+
 
 
 

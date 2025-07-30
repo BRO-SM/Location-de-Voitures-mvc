@@ -13,57 +13,92 @@ export default function UpdateClientsInfo() {
     email: "",
     CNE: "",
     password: "",
+    confirmPassword: "",
   });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3000/api/users/${id}`);
-        setFormData(res.data);
-        setError(null);
-      } catch (err) {
-        console.error("Erreur lors du chargement du client :", err);
-        setError("Failed to load user data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
 
-    fetchUser();
-  }, [id]);
+  if (user?.role === "client" && user.user_id.toString() !== id) {
+    navigate("/my-profile"); 
+    return;
+  }
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchUser = async () => {
     try {
-      setLoading(true);
-      await axios.put(`http://localhost:3000/api/users/update/${id}`, formData);
-      setSuccess(true);
-      setTimeout(() => {
-        if (user?.role === "admin") {
-          navigate("/clients");
-        } else {
-          navigate("/cars");
-        }
-      }, 1500);
+      const res = await axios.get(`http://localhost:3000/api/users/${id}`);
+      setFormData(res.data);
+      setError(null);
     } catch (err) {
-      console.error("Erreur lors de la mise à jour :", err);
-      setError(err.response?.data?.message || "Échec de la mise à jour");
+      console.error("Erreur lors du chargement du client :", err);
+      setError("Failed to load user data. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  fetchUser();
+}, [id, user, navigate]);
+
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const token = localStorage.getItem("token");
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (formData.password && formData.password !== formData.confirmPassword) {
+    setError("Les mots de passe ne correspondent pas.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const { confirmPassword, ...dataToSend } = formData;
+    const token = localStorage.getItem("token");
+
+    await axios.put(
+      `http://localhost:3000/api/users/update/${id}`,
+      dataToSend,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    setSuccess(true);
+
+    setTimeout(() => {
+      if (user?.role === "admin") {
+        navigate("/clients");
+      } else {
+        navigate("/my-profile");
+      }
+    }, 1500);
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour :", err);
+    setError(err.response?.data?.message || "Échec de la mise à jour");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
   if (loading && !success) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{height: "300px"}}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "300px" }}
+      >
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -71,15 +106,18 @@ export default function UpdateClientsInfo() {
     );
   }
 
-  if (error && !loading) {
+   if (error && !loading) {
     return (
-      <div className="alert alert-danger text-center mx-auto mt-5" style={{maxWidth: "500px"}}>
+      <div
+        className="alert alert-danger text-center mx-auto mt-5"
+        style={{ maxWidth: "500px" }}
+      >
         {error}
-        <button 
-          className="btn btn-sm btn-outline-danger ms-3"
-          onClick={() => window.location.reload()}
+        <button
+          className="btn btn-sm text-bg-primary btn-outline-warning ms-3"
+          onClick={() => navigate("/contact")}
         >
-          Retry
+          Contactez-Nous
         </button>
       </div>
     );
@@ -159,17 +197,29 @@ export default function UpdateClientsInfo() {
                     onChange={handleChange}
                     icon="bi-lock"
                   />
+                  <FormField
+                    label="Confirmer le mot de passe"
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    icon="bi-shield-lock"
+                  />
                 </div>
 
                 <div className="d-grid gap-2 mt-4">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn btn-primary"
                     disabled={loading}
                   >
                     {loading ? (
                       <span>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
                         Enregistrement...
                       </span>
                     ) : (
@@ -179,9 +229,9 @@ export default function UpdateClientsInfo() {
                       </span>
                     )}
                   </button>
-                  
-                  <button 
-                    type="button" 
+
+                  <button
+                    type="button"
                     className="btn btn-outline-secondary"
                     onClick={() => navigate(-1)}
                   >
@@ -199,7 +249,15 @@ export default function UpdateClientsInfo() {
 }
 
 // Reusable form field component
-function FormField({ label, name, value, onChange, type = "text", required = false, icon }) {
+function FormField({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  icon,
+}) {
   return (
     <div className="col-md-12">
       <div className="form-group">

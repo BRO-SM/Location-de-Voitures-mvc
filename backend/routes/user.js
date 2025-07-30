@@ -21,6 +21,11 @@ router.put("/update/:id", verifyToken, userController.updateClient);
 // verifier les informations d’un Client
 router.patch("/verify/:id", userController.verifyClient);
 
+router.post("/contact", userController.sendContactMessage);
 
+router.get("/contact/messages", verifyToken, userController.getContactMessages);
 
+router.put("/contact/open/:id", verifyToken, userController.markMessageAsRead);
+
+router.post("/contact/reply", verifyToken, userController.replyToMessage);
 module.exports = router;

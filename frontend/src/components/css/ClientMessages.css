@@ -1,0 +1,58 @@
+/* تنسيقات عامة */
+.client-messages {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.message-list {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* تأثيرات الرسائل */
+.list-group-item {
+  transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f1f1f1;
+}
+
+.list-group-item.active {
+  background-color: #e7f1ff;
+  border-color: #d6e4ff;
+}
+
+/* تحريك أيقونات التحميل */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* تنسيق محتوى الرسالة */
+.message-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* تنسيق قسم الرد */
+.reply-section textarea {
+  min-height: 150px;
+}
+
+/* تكييف للشاشات الصغيرة */
+@media (max-width: 768px) {
+  .client-messages {
+    padding: 10px;
+  }
+  
+  .message-list {
+    max-height: 40vh;
+    margin-bottom: 20px;
+  }
+}

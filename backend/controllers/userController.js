@@ -1,10 +1,11 @@
 // controllers/userController.js
-const db = require('../db/connection');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { get } = require('../routes/rental');
+const db = require("../db/connection");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { get } = require("../routes/rental");
+const e = require("express");
 
-require('dotenv').config();
+require("dotenv").config();
 
 const userController = {
   // Enregistrement d'un nouvel utilisateur
@@ -64,7 +65,12 @@ const userController = {
 
       // Générer un token JWT
       const token = jwt.sign(
-        { user_id: user.user_id, first_name: user.first_name, role: user.role },
+        {
+          user_id: user.user_id,
+          first_name: user.first_name + " " + user.last_name,
+          email: user.email,
+          role: user.role,
+        },
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
       );
@@ -97,86 +103,211 @@ const userController = {
   },
 
   getUserById: async (req, res) => {
-  const userId = req.params.id;
+    const userId = req.params.id;
 
+    try {
+      const [user] = await db
+        .promise()
+        .query("SELECT * FROM Users WHERE user_id = ?", [userId]);
+
+      if (user.length === 0) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+      }
+
+      // لا تُرجع كلمة المرور!
+      const { password, ...userWithoutPassword } = user[0];
+
+      res.json(userWithoutPassword);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  },
+
+  verifyClient: (req, res) => {
+    const query = "UPDATE `Users` SET `is_verified` = 1 WHERE `user_id` = ?";
+    db.query(query, [req.params.id], (err, results) => {
+      if (err) {
+        console.error("Erreur SQL:", err);
+        return res.status(500).json({ message: "Erreur serveur" });
+      }
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+      }
+      res.json({ message: "Utilisateur vérifié avec succès" });
+    });
+  },
+  updateClient: async (req, res) => {
+    const { first_name, last_name, phone_number, email, CNE, password } =
+      req.body;
+    const userIdToUpdate = req.params.id;
+    const requester = req.user;
+
+    try {
+      const [rows] = await db
+        .promise()
+        .query("SELECT * FROM Users WHERE user_id = ?", [userIdToUpdate]);
+      if (rows.length === 0)
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+      const userToUpdate = rows[0];
+
+      if (requester.role === "client") {
+        if (requester.user_id != userIdToUpdate) {
+          return res.status(403).json({
+            message:
+              "Accès refusé : impossible de modifier un autre utilisateur.",
+          });
+        }
+        if (userToUpdate.is_verified === 1) {
+          return res
+            .status(403)
+            .json({
+              message:
+                "Modification interdite : contactez-nous s'il vous plaît.",
+            });
+        }
+      }
+
+      if (password && password.trim() !== "") {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await db.promise().query(
+          `UPDATE Users 
+         SET first_name = ?, last_name = ?, phone_number = ?, email = ?, CNE = ?, password = ?, is_verified = ? 
+         WHERE user_id = ?`,
+          [
+            first_name,
+            last_name,
+            phone_number,
+            email,
+            CNE,
+            hashedPassword,
+            requester.role === "admin" ? 0 : userToUpdate.is_verified,
+            userIdToUpdate,
+          ]
+        );
+      } else {
+        await db.promise().query(
+          `UPDATE Users 
+         SET first_name = ?, last_name = ?, phone_number = ?, email = ?, CNE = ?, is_verified = ? 
+         WHERE user_id = ?`,
+          [
+            first_name,
+            last_name,
+            phone_number,
+            email,
+            CNE,
+            requester.role === "admin" ? 0 : userToUpdate.is_verified,
+            userIdToUpdate,
+          ]
+        );
+      }
+
+      res.json({ message: "Client mis à jour avec succès" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  },
+
+  sendContactMessage: async (req, res) => {
+    try {
+      const { name, email, message } = req.body;
+      const userId = req.user?.user_id || null;
+
+      if (!name || !email || !message) {
+        return res
+          .status(400)
+          .json({ message: "Tous les champs sont requis." });
+      }
+
+      await db
+        .promise()
+        .query(
+          `INSERT INTO Contact (user_id, name, email, message) VALUES (?, ?, ?, ?)`,
+          [userId, name, email, message]
+        );
+
+      res.status(201).json({ message: "Message envoyé avec succès." });
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du message :", error);
+      res.status(500).json({ message: "Erreur serveur." });
+    }
+  },
+
+  getContactMessages: async (req, res) => {
   try {
-    const [user] = await db.promise().query("SELECT * FROM Users WHERE user_id = ?", [userId]);
+    const adminEmail = req.query.adminEmail;
 
-    if (user.length === 0) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    if (!adminEmail) {
+      return res.status(400).json({ message: "Email admin requis" });
     }
 
-    // لا تُرجع كلمة المرور!
-    const { password, ...userWithoutPassword } = user[0];
+    const [rows] = await db.promise().query(
+      `SELECT * FROM Contact WHERE recipient_email = ? OR recipient_email IS NULL ORDER BY contact_id DESC`,
+      [adminEmail]
+    );
 
-    res.json(userWithoutPassword);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.json(rows);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des messages :", error);
+    res.status(500).json({ message: "Erreur serveur." });
   }
 },
 
+markMessageAsRead: async (req, res) => {
+  const contactId = req.params.id;
+  const recipientEmail = req.user?.email;
 
- verifyClient: (req, res) => {
-  const query = "UPDATE `Users` SET `is_verified` = 1 WHERE `user_id` = ?";
-  db.query(query, [req.params.id], (err, results) => {
-    if (err) {
-      console.error("Erreur SQL:", err);
-      return res.status(500).json({ message: "Erreur serveur" });
-    }
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
-    }
-    res.json({ message: "Utilisateur vérifié avec succès" });
-  });
-},
-updateClient: async (req, res) => {
-  const { first_name, last_name, phone_number, email, CNE, password } = req.body;
-  const userIdToUpdate = req.params.id;
-  const requester = req.user; // يجب أن تأتي من التوكن بعد middleware التوثيق
+  if (!recipientEmail) {
+    return res.status(400).json({ message: "Email de l'admin manquant" });
+  }
 
   try {
-    // جلب بيانات المستخدم الذي سيتم تحديثه
-    const [userRows] = await db.promise().query("SELECT * FROM Users WHERE user_id = ?", [userIdToUpdate]);
-    if (userRows.length === 0) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
-    }
-    const userToUpdate = userRows[0];
-
-    // شرط: إذا الدور client و is_verified = 1، ممنوع التعديل
-    if (requester.role === 'client' && userToUpdate.is_verified === 1) {
-      return res.status(403).json({ message: "Modification interdite : compte vérifié." });
-    }
-
-    // (اختياري) تأكد أن العميل لا يعدل بيانات عميل آخر (يعدل نفسه فقط)
-    if (requester.role === 'client' && requester.user_id != userIdToUpdate) {
-      return res.status(403).json({ message: "Accès refusé : impossible de modifier un autre utilisateur." });
-    }
-
-    // تابع التحديث، بنفس الطريقة مع تشفير كلمة المرور إن وجدت
-    if (password && password.trim() !== "") {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await db.promise().query(
-        "UPDATE Users SET first_name = ?, last_name = ?, phone_number = ?, email = ?, CNE = ?, password = ? WHERE user_id = ?",
-        [first_name, last_name, phone_number, email, CNE, hashedPassword, userIdToUpdate]
+    await db
+      .promise()
+      .query(
+        "UPDATE Contact SET recipient_email = ? WHERE contact_id = ? AND recipient_email IS NULL",
+        [recipientEmail, contactId]
       );
-    } else {
-      await db.promise().query(
-        "UPDATE Users SET first_name = ?, last_name = ?, phone_number = ?, email = ?, CNE = ? WHERE user_id = ?",
-        [first_name, last_name, phone_number, email, CNE, userIdToUpdate]
-      );
-    }
 
-    res.json({ message: "Client mis à jour avec succès" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.json({ message: "Message marqué comme lu." });
+  } catch (error) {
+    console.error("Erreur lors du marquage du message :", error);
+    res.status(500).json({ message: "Erreur serveur." });
   }
-}
+},
+replyToMessage: async (req, res) => {
+  const { contact_id, reply } = req.body;
+  const adminEmail = req.user?.email;
+
+  if (!adminEmail) {
+    return res.status(401).json({ message: "Authentification requise." });
+  }
+  if (!contact_id || !reply) {
+    return res.status(400).json({ message: "contact_id et reply sont requis." });
+  }
+
+  try {
+    // تحديث الرسالة في جدول Contact بإضافة الرد
+    const [result] = await db.promise().query(
+      `UPDATE Contact SET reply = ?, replied_by = ?, replied_at = NOW() WHERE contact_id = ?`,
+      [reply, adminEmail, contact_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Message non trouvé." });
+    }
+
+    res.json({ message: "Réponse enregistrée avec succès." });
+  } catch (error) {
+    console.error("Erreur lors de l'enregistrement de la réponse :", error);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+},
 
 
 
 };
-
 
 module.exports = userController;

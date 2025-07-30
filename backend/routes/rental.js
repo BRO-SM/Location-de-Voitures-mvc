@@ -22,4 +22,8 @@ router.get('/my-bookings/:userId', authenticate, rentalController.getBookingsByU
 
 router.post('/addreview', authenticate, rentalController.addreview);
 
+
+
+
+
 module.exports = router;

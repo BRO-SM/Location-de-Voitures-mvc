@@ -1,4 +1,4 @@
-import React from "react";
+// frontend/src/components/CarCard.jsx
 import { Link } from "react-router-dom";
 import { StarFill } from "react-bootstrap-icons"; // npm i react-bootstrap-icons
 
@@ -7,7 +7,7 @@ const CarCard = ({ car }) => {
     car.images?.find((img) => img.is_primary) || car.images?.[0];
 
   return (
-    <div className="col-md-6 col-lg-4 mb-4">
+    
       <div className="card h-100 shadow-sm border-0">
         {/* Image */}
         <div className="position-relative">
@@ -45,11 +45,19 @@ const CarCard = ({ car }) => {
             {car.make} {car.model} - {car.year}
           </h5>
 
-          {/* Évaluation */}
+          {/* Évaluation dynamique */}
           <div className="mb-2 text-warning">
             {[...Array(5)].map((_, i) => (
-              <StarFill key={i} className="me-1" />
+              <StarFill
+                key={i}
+                className={`me-1 ${
+                  i < Math.round(car.avg_rating || 0) ? "" : "text-muted"
+                }`}
+              />
             ))}
+            <span className="ms-2 text-dark small">
+              {car.avg_rating ? `${car.avg_rating}/5` : "Pas encore notée"}
+            </span>
           </div>
 
           <ul className="list-unstyled small text-muted mb-3">
@@ -81,7 +89,7 @@ const CarCard = ({ car }) => {
           </Link>
         </div>
       </div>
-    </div>
+    
   );
 };
 

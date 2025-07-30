@@ -141,31 +141,52 @@ deleteCarImage: async (req, res) => {
 
   // Afficher toutes les voitures
   getAllCars: async (req, res) => {
-    try {
-      const [cars] = await db.promise().query("SELECT * FROM Cars");
+  try {
+    const [cars] = await db.promise().query("SELECT * FROM Cars");
 
-      if (cars.length === 0) {
-        return res.json([]);
-      }
-      const carIds = cars.map((car) => car.car_id);
-      // Get all images for these cars
-      const placeholders = carIds.map(() => "?").join(",");
-      const [images] = await db
-        .promise()
-        .query(`SELECT * FROM imgs WHERE car_id IN (${placeholders})`, carIds);
-      const carsWithImages = cars.map((car) => ({
-        ...car,
-        images: images.filter((img) => img.car_id === car.car_id),
-      }));
-
-      res.json(carsWithImages);
-    } catch (err) {
-      console.error(err);
-      res
-        .status(500)
-        .json({ message: "❌ Erreur lors de la récupération des voitures" });
+    if (cars.length === 0) {
+      return res.json([]);
     }
-  },
+
+    const carIds = cars.map((car) => car.car_id);
+
+    // Get all images for these cars
+    const placeholders = carIds.map(() => "?").join(",");
+    const [images] = await db
+      .promise()
+      .query(`SELECT * FROM imgs WHERE car_id IN (${placeholders})`, carIds);
+
+    // Get average ratings for each car
+    const [ratings] = await db
+      .promise()
+      .query(
+        `SELECT car_id, ROUND(AVG(rating), 1) AS avg_rating
+         FROM Review
+         GROUP BY car_id`
+      );
+
+    // Create a map: car_id => avg_rating
+    const ratingsMap = {};
+    ratings.forEach((r) => {
+      ratingsMap[r.car_id] = r.avg_rating;
+    });
+
+    // Combine cars with their images and ratings
+    const carsWithData = cars.map((car) => ({
+      ...car,
+      avg_rating: ratingsMap[car.car_id] || 0,
+      images: images.filter((img) => img.car_id === car.car_id),
+    }));
+
+    res.json(carsWithData);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "❌ Erreur lors de la récupération des voitures" });
+  }
+},
+
   // Afficher une voiture par ID
 getCarById: async (req, res) => {
   const carId = req.params.id;

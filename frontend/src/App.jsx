@@ -20,6 +20,7 @@ import Clients from "./pages/users/Clients";
 import UpdateClientsInfo from "./pages/users/UpdateClientsInfo";
 import MyProfile from "./pages/users/My-profile";
 import Reservations from "./pages/rentals/Reservations";
+import ClientMessages from "./pages/users/Client_messages";
 
 
 
@@ -44,11 +45,12 @@ function App() {
         <Route path="/admin/add-car/image/:id" element={<Addcarimg />} />
         <Route path="/rental/create/:car_id" element={<CreateRental />} />
         <Route path="/my-bookings" element={<MyBookings />} />
-        <Route path="/reservations" element={<Reservations/>} />
-        <Route path="/addreview/:id" element={<AddReview />} />
+        <Route path="/reservations" element={<Reservations />} />
+        <Route path="/addreview/:rentalId" element={<AddReview />} />
         <Route path="/clients" element={<Clients />} />
         <Route path="/users/clients/:id" element={<UpdateClientsInfo />} />
         <Route path="/my-profile" element={<MyProfile />} />
+        <Route path="/client_messages" element={<ClientMessages/>} />
         <Route path="*" element={<h1>404 Not Found</h1>} /> Route
       </Routes>
       <Footer />

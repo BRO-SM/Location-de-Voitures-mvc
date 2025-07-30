@@ -66,16 +66,20 @@ export default function NavBar() {
                     <NavLink className="nav-link" to="/my-profile">
                       Mon profil
                     </NavLink>
-
                   </li>
                 </>
-                
               )}
 
               <li className="nav-item">
-                <NavLink className="nav-link" to="/contact">
-                  Contact
-                </NavLink>
+                {user?.role === "admin" ? (
+                  <NavLink className="nav-link" to="/client_messages">
+                    Messages-clients
+                  </NavLink>
+                ) : (
+                  <NavLink className="nav-link" to="/contact">
+                    Contact
+                  </NavLink>
+                )}
               </li>
             </ul>
           </div>
@@ -84,7 +88,8 @@ export default function NavBar() {
             {isAuthenticated ? (
               <>
                 <span className="text-secondary small">
-                  👋 {user.first_name} {user.role === "admin" && `(${user.role})`}
+                  👋 {user.first_name}{" "}
+                  {user.role === "admin" && `(${user.role})`}
                 </span>
                 <button
                   className="btn btn-outline-danger"
