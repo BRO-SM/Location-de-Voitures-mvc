@@ -22,7 +22,7 @@ router.get('/my-bookings/:userId', authenticate, rentalController.getBookingsByU
 
 router.post('/addreview', authenticate, rentalController.addreview);
 
-
+router.get('/car/:car_id', verifyToken, rentalController.getBookingsByCar);
 
 
 

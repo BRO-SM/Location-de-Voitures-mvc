@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; //
-import Switgreeting from "../UI/switalert/Alert";
+import Switgreeting from "../UI/Greeting";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");

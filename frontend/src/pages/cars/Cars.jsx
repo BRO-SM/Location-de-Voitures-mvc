@@ -58,10 +58,10 @@ export default function Cars() {
 
   return (
     <div className="container py-4">
-      {/* شريط الفلترة المحسن */}
+      {/* filter bar*/}
       <div className="filter-bar">
         <div className="row g-3 align-items-end">
-          {/* زر الإضافة للمشرف */}
+          {/* only admin can add a car*/}
           {user?.role === "admin" && (
             <div className="col-md-2">
               <NavLink to="/add-car" className="btn btn-success w-100">
@@ -70,7 +70,7 @@ export default function Cars() {
             </div>
           )}
 
-          {/* حقل البحث */}
+          {/* filter by search*/}
           <div className="col-md-3">
             <label className="filter-label">Recherche</label>
             <div className="input-group">
@@ -87,7 +87,7 @@ export default function Cars() {
             </div>
           </div>
 
-          {/* فلترة الحالة */}
+          {/* filter by Status*/}
           <div className="col-md-3">
             <label className="filter-label">Disponibilité</label>
             <div className="input-group">
@@ -102,11 +102,15 @@ export default function Cars() {
                 <option value="all">Toutes les voitures</option>
                 <option value="disponible">Disponibles</option>
                 <option value="indisponible">Indisponibles</option>
+                <option value="reserve">Reservées</option>
+                {user?.role === "admin" && (
+                  <option value="en maintenance">En maintenance</option>
+                )}
               </select>
             </div>
           </div>
 
-          {/* فرز النتائج */}
+          {/* filter by*/}
           <div className="col-md-3">
             <label className="filter-label">Trier par</label>
             <div className="input-group">
@@ -136,7 +140,7 @@ export default function Cars() {
         </div>
       </div>
 
-      {/* نتائج البحث */}
+      {/* results*/}
       {filteredCars.length === 0 ? (
         <div className="text-center py-5">
           <h4 className="text-muted">Aucune voiture trouvée</h4>

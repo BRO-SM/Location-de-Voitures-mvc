@@ -4,9 +4,10 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCar, faSave, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 
 export default function UpdateCar() {
-  const { id } = useParams(); // ID de la voiture à modifier
+  const { id } = useParams();
   const [car, setCar] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -15,10 +16,10 @@ export default function UpdateCar() {
     const fetchCar = async () => {
       try {
         const res = await axios.get(`http://localhost:3000/api/cars/${id}`);
-        setCar(res.data.car); // Charger les données de la voiture
+        setCar(res.data.car);
       } catch (err) {
         console.error("Erreur lors du chargement:", err);
-        alert("❌ Impossible de charger la voiture");
+        Swal.fire("Erreur", "Impossible de charger la voiture", "error");
       }
     };
 
@@ -36,17 +37,24 @@ export default function UpdateCar() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.put(`http://localhost:3000/api/cars/update/${id}`, car, {
+      await axios.put(`http://localhost:3000/api/cars/update/${id}`, car, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      alert("✅ Voiture mise à jour avec succès");
+      await Swal.fire({
+        icon: "success",
+        title: "Mise à jour réussie",
+        text: "Les informations de la voiture ont été mises à jour avec succès.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
       navigate("/cars");
     } catch (err) {
       console.error(err);
-      alert("❌ Échec de la mise à jour");
+      Swal.fire("Erreur", "Échec de la mise à jour de la voiture", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +86,6 @@ export default function UpdateCar() {
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
-                  {/* Champs réutilisés de AddCar */}
                   <div className="col-md-6">
                     <label className="form-label">Marque*</label>
                     <input
@@ -197,6 +204,22 @@ export default function UpdateCar() {
                     >
                       <option value="Manuelle">Manuelle</option>
                       <option value="Automatique">Automatique</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label">Statut*</label>
+                    <select
+                      className="form-select"
+                      name="status"
+                      value={car.status}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="disponible">Disponible</option>
+                      <option value="reserve">Reservé</option>
+                      <option value="indisponible">Indisponible</option>
+                      <option value="en maintenance">En maintenance</option>
                     </select>
                   </div>
 

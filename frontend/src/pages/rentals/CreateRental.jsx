@@ -10,31 +10,44 @@ function CreateRental() {
   const [car, setCar] = useState(null);
   const [dates, setDates] = useState({ start_date: "", end_date: "" });
   const [totalPrice, setTotalPrice] = useState(0);
+  const [previousRentals, setPreviousRentals] = useState([]);
+  const [error, setError] = useState("");
 
-  // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split("T")[0];
 
-  // Fetch car data from API based on car_id
+  // جلب بيانات السيارة والحجوزات السابقة
   useEffect(() => {
-    const fetchCar = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/api/cars");
-        const foundCar = res.data.find((c) => c.car_id === parseInt(car_id));
-        setCar(foundCar);
-      } catch (err) {
-        console.error("Erreur lors du chargement de la voiture :", err);
-      }
-    };
-    fetchCar();
-  }, [car_id]);
+  const fetchCarAndRentals = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-  // Handle date changes and update total price
+      const [carRes, rentalsRes] = await Promise.all([
+        axios.get(`http://localhost:3000/api/cars/${car_id}`),
+        axios.get(`http://localhost:3000/api/rentals/car/${car_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ]);
+
+      setCar(carRes.data);
+      setPreviousRentals(rentalsRes.data);
+    } catch (err) {
+      console.error("Erreur lors du chargement :", err);
+      setError("Erreur de chargement des données. Veuillez réessayer.");
+    }
+  };
+
+  fetchCarAndRentals();
+}, [car_id]);
+
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updated = { ...dates, [name]: value };
     setDates(updated);
+    setError("");
 
-    // Calculate rental duration and total price
     if (updated.start_date && updated.end_date) {
       const start = new Date(updated.start_date);
       const end = new Date(updated.end_date);
@@ -48,9 +61,31 @@ function CreateRental() {
     }
   };
 
-  // Submit the rental to the backend
+  // التحقق من التداخل مع الحجوزات السابقة
+  const isOverlapping = () => {
+    const start = new Date(dates.start_date);
+    const end = new Date(dates.end_date);
+
+    return previousRentals.some((rental) => {
+      const prevStart = new Date(rental.start_date);
+      const prevEnd = new Date(rental.end_date);
+
+      // يجب أن يكون هناك يوم على الأقل فارق بين الحجزين
+      return (
+        (start <= prevEnd && end >= prevStart) || // تداخل في التواريخ
+        Math.abs((start - prevEnd) / (1000 * 60 * 60 * 24)) < 1 || 
+        Math.abs((prevStart - end) / (1000 * 60 * 60 * 24)) < 1
+      );
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isOverlapping()) {
+      setError("⚠️ La période sélectionnée est en conflit avec une réservation existante. Laissez au moins un jour entre deux réservations.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
@@ -61,9 +96,7 @@ function CreateRental() {
           end_date: dates.end_date,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       alert(res.data.message + `\nPrix total: ${res.data.total_price} DH`);
@@ -71,7 +104,7 @@ function CreateRental() {
     } catch (error) {
       alert(
         error?.response?.data?.message ||
-          "Une erreur est survenue lors de la réservation."
+        "Une erreur est survenue lors de la réservation."
       );
     }
   };
@@ -84,6 +117,26 @@ function CreateRental() {
         Réserver : <span className="text-primary">{car.make} {car.model}</span>
       </h2>
 
+      {/* عرض تواريخ الحجوزات السابقة */}
+      {previousRentals.length > 0 && (
+        <div className="alert alert-warning">
+          <h6>Réservations précédentes :</h6>
+          <ul className="mb-0">
+            {previousRentals.map((r) => (
+              <li key={r.rental_id}>
+                {new Date(r.start_date).toLocaleDateString()} -{" "}
+                {new Date(r.end_date).toLocaleDateString()}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* رسالة خطأ إذا وُجد تداخل */}
+      {error && (
+        <div className="alert alert-danger">{error}</div>
+      )}
+
       <form onSubmit={handleSubmit}>
         <div className="row">
           <div className="col-md-6 mb-3">
@@ -95,7 +148,7 @@ function CreateRental() {
               className="form-control"
               value={dates.start_date}
               onChange={handleChange}
-              min={today} // Prevent past dates
+              min={today}
               required
             />
           </div>
@@ -109,7 +162,7 @@ function CreateRental() {
               className="form-control"
               value={dates.end_date}
               onChange={handleChange}
-              min={dates.start_date || today} // End date must be after or equal to start
+              min={dates.start_date || today}
               required
             />
           </div>

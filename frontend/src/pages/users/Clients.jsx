@@ -26,6 +26,7 @@ export default function Clients() {
   const [verifyingId, setVerifyingId] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [sortOption, setSortOption] = useState("default"); // ✅ حالة جديدة للفرز
 
   const fetchClients = async () => {
     try {
@@ -74,6 +75,20 @@ export default function Clients() {
     );
   });
 
+  // ✅ الترتيب حسب الخيار المحدد
+  const sortedClients = [...filteredClients].sort((a, b) => {
+    switch (sortOption) {
+      case "name":
+        return a.first_name.localeCompare(b.first_name);
+      case "verified":
+        return b.is_verified - a.is_verified;
+      case "last_login":
+        return new Date(b.last_login || 0) - new Date(a.last_login || 0);
+      default:
+        return 0;
+    }
+  });
+
   return (
     <div className="container py-5">
       {/* Header + Search */}
@@ -83,7 +98,8 @@ export default function Clients() {
           <span>Gestion des Clients</span>
         </h2>
 
-        <div className="d-flex gap-2 w-100 w-md-auto">
+        <div className="d-flex gap-2 flex-wrap">
+          {/* Recherche */}
           <div className="input-group flex-nowrap" style={{ minWidth: "250px" }}>
             <span className="input-group-text bg-white">
               <Search size={18} className="text-muted" />
@@ -96,6 +112,8 @@ export default function Clients() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+
+          {/* Bouton Refresh */}
           <button
             className="btn btn-outline-secondary d-flex align-items-center"
             onClick={fetchClients}
@@ -103,6 +121,18 @@ export default function Clients() {
           >
             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
           </button>
+
+          {/* ✅ Dropdown de tri */}
+          <select
+            className="form-select w-auto"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+          >
+            <option value="default">Trier par défaut</option>
+            <option value="name">Nom (A-Z)</option>
+            <option value="verified">Vérifié d'abord</option>
+            <option value="last_login">Dernière connexion</option>
+          </select>
         </div>
       </div>
 
@@ -113,7 +143,6 @@ export default function Clients() {
           {error}
         </div>
       )}
-
       {success && (
         <div className="alert alert-success d-flex align-items-center mb-4">
           <CheckCircle className="me-2" size={18} />
@@ -130,7 +159,7 @@ export default function Clients() {
       )}
 
       {/* Empty */}
-      {!loading && filteredClients.length === 0 && (
+      {!loading && sortedClients.length === 0 && (
         <div className="text-center py-5">
           {searchTerm ? (
             <>
@@ -155,9 +184,9 @@ export default function Clients() {
       )}
 
       {/* Clients Grid */}
-      {!loading && filteredClients.length > 0 && (
+      {!loading && sortedClients.length > 0 && (
         <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-          {filteredClients.map((client) => (
+          {sortedClients.map((client) => (
             <div key={client.user_id} className="col">
               <div className="card h-100 shadow-sm border-0">
                 <div className="card-body">
@@ -181,22 +210,18 @@ export default function Clients() {
                       <Mail className="me-2 text-muted" size={16} />
                       <span>{client.email}</span>
                     </div>
-
                     <div className="d-flex align-items-center mb-2">
                       <Phone className="me-2 text-muted" size={16} />
                       <span>{client.phone_number || "N/A"}</span>
                     </div>
-
                     <div className="d-flex align-items-center mb-2">
                       <BadgeInfo className="me-2 text-muted" size={16} />
                       <span>CNE: {client.CNE || "N/A"}</span>
                     </div>
-
                     <div className="d-flex align-items-center mb-2">
                       <Shield className="me-2 text-muted" size={16} />
                       <span>Rôle: <strong>{client.role}</strong></span>
                     </div>
-
                     <div className="d-flex align-items-center mb-3 text-muted">
                       <CalendarClock className="me-2" size={16} />
                       <small>

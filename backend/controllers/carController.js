@@ -198,7 +198,6 @@ getCarById: async (req, res) => {
       .query("SELECT * FROM Cars WHERE car_id = ?", [carId]);
 
     if (car.length === 0) {
-      // Return 404 if car not found
       return res.status(404).json({ message: "🚗 Car not found" });
     }
 
@@ -219,20 +218,33 @@ getCarById: async (req, res) => {
         [carId]
       );
 
-    // 4. Combine car data with its images
+    // 4. Fetch current rental info (if reserved or unavailable)
+    const [rentalInfo] = await db
+      .promise()
+      .query(
+        `SELECT start_date, end_date 
+         FROM Rental 
+         WHERE car_id = ? 
+         AND status = 'confirmée'
+         AND end_date >= CURDATE()
+         ORDER BY start_date ASC LIMIT 1`,
+        [carId]
+      );
+
+    // 5. Combine car data with its images and current rental (if any)
     const carWithImages = {
       ...car[0],
       images,
+      currentRental: rentalInfo[0] || null,
     };
 
-    // 5. Send the combined data as JSON response
     res.json({ car: carWithImages, reviews });
   } catch (err) {
     console.error("❌ SQL Error:", err);
-    // Return 500 if any error occurs during the query
     res.status(500).json({ message: "❌ Error retrieving car data" });
   }
 },
+
 
 
   // Modifier une voiture

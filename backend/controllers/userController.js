@@ -289,7 +289,7 @@ replyToMessage: async (req, res) => {
   }
 
   try {
-    // تحديث الرسالة في جدول Contact بإضافة الرد
+
     const [result] = await db.promise().query(
       `UPDATE Contact SET reply = ?, replied_by = ?, replied_at = NOW() WHERE contact_id = ?`,
       [reply, adminEmail, contact_id]

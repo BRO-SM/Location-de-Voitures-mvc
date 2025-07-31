@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Switgreeting from "../UI/switalert/Alert";
+import Switgreeting from "../UI/Greeting";
 
 const RegisterForm = () => {
   const navigate = useNavigate();

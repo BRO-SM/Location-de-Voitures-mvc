@@ -25,7 +25,6 @@ const CarDetails = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
-  // Fetch car details and reviews on component mount
   useEffect(() => {
     const fetchCarDetails = async () => {
       try {
@@ -48,7 +47,6 @@ const CarDetails = () => {
     setIsFavorite(!isFavorite);
   };
 
-  // Handle car deletion
   const handleDelete = async () => {
     if (
       window.confirm(
@@ -79,7 +77,6 @@ const CarDetails = () => {
 
   return (
     <div className="container py-5">
-      {/* Back to list */}
       <Link
         to="/cars"
         className="text-blue-600 flex items-center mb-4 hover:underline"
@@ -88,7 +85,6 @@ const CarDetails = () => {
       </Link>
 
       <div className="row">
-        {/* Car images */}
         <div className="col-md-6 mb-4">
           <div className="border rounded shadow-sm overflow-hidden position-relative">
             <img
@@ -109,7 +105,6 @@ const CarDetails = () => {
             </button>
           </div>
 
-          {/* Thumbnails */}
           <div className="d-flex mt-2 gap-2 overflow-auto">
             {car.images?.map((img, index) => (
               <img
@@ -133,7 +128,6 @@ const CarDetails = () => {
           </div>
         </div>
 
-        {/* Car info */}
         <div className="col-md-6">
           <h2 className="fw-bold">
             {car.make} {car.model}{" "}
@@ -157,37 +151,75 @@ const CarDetails = () => {
               </span>
             )}
             <span>
-              <Calendar className="me-1" size={16} />{" "}
+              <Calendar className="me-1" size={16} />
               <span
                 className={`badge ${
-                  car.status === "disponible" ? "bg-success" : "bg-danger"
+                  car.status === "disponible"
+                    ? "bg-success"
+                    : car.status === "reserve"
+                    ? "bg-info text-dark"
+                    : car.status === "en maintenance"
+                    ? "bg-warning text-dark"
+                    : "bg-danger"
                 }`}
               >
-                {car.status === "disponible" ? "Disponible" : "Indisponible"}
+                {car.status === "disponible"
+                  ? "Disponible"
+                  : car.status === "reserve"
+                  ? "Réservée"
+                  : car.status === "en maintenance"
+                  ? "En maintenance"
+                  : "Indisponible"}
               </span>
             </span>
           </div>
+
+          {/* Show rental dates if reserved or unavailable */}
+          {(car.status === "reserve" || car.status === "indisponible") &&
+            car.currentRental && (
+              <div className="mt-2 text-muted">
+                {car.status === "reserve" ? (
+                  <>
+                    <strong>Période de réservation:</strong>
+                    <br />
+                    {new Date(
+                      car.currentRental.start_date
+                    ).toLocaleDateString()}{" "}
+                    -{" "}
+                    {new Date(car.currentRental.end_date).toLocaleDateString()}
+                  </>
+                ) : (
+                  <>
+                    <strong>Indisponible jusqu'au:</strong>
+                    <br />
+                    {new Date(car.currentRental.end_date).toLocaleDateString()}
+                  </>
+                )}
+              </div>
+            )}
 
           <h4 className="text-primary">{car.price_per_day} MAD / jour</h4>
 
           {isAuthenticated && (
             <>
-              {/* Client actions */}
               {user?.role === "client" && (
                 <>
                   <button
                     className={`btn btn-${
-                      car.status === "disponible" ? "primary" : "secondary"
+                      car.status === "disponible" || car.status === "reserve"
+                        ? "primary"
+                        : "secondary"
                     } w-100 mt-3`}
-                    onClick={() => navigate(`/rent/${car.car_id}`)}
-                    disabled={car.status !== "disponible"}
+                    onClick={() => navigate(`/rental/create/${car.car_id}`)}
+                    disabled={
+                      car.status !== "disponible" && car.status !== "reserve"
+                    }
                   >
-                    {car.status === "disponible"
+                    {car.status === "disponible" || car.status === "reserve"
                       ? "Réserver maintenant"
                       : "Indisponible"}
                   </button>
 
-                  {/* Add review */}
                   <button
                     className="btn btn-info w-100 mt-3 d-flex align-items-center justify-content-center"
                     onClick={() => navigate(`/addreview/${car.car_id}`)}
@@ -197,10 +229,8 @@ const CarDetails = () => {
                 </>
               )}
 
-              {/* Admin actions */}
               {user?.role === "admin" && (
                 <>
-                  {/* Update car info */}
                   <NavLink
                     to={`/UpdateCar/${car.car_id}`}
                     className="btn btn-warning w-100 mt-3 d-flex align-items-center justify-content-center"
@@ -209,7 +239,6 @@ const CarDetails = () => {
                     Modifier la voiture
                   </NavLink>
 
-                  {/* Update car images */}
                   <NavLink
                     to={`/admin/add-car/image/${car.car_id}`}
                     className="btn btn-info w-100 mt-3 d-flex align-items-center justify-content-center"
@@ -218,7 +247,6 @@ const CarDetails = () => {
                     Modifier les images
                   </NavLink>
 
-                  {/* Delete car */}
                   <button
                     onClick={handleDelete}
                     className="btn btn-danger w-100 mt-3"

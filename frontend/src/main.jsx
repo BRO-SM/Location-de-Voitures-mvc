@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import { BrowserRouter } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.min.js";
+import "sweetalert2/dist/sweetalert2.min.css";
 import "./index.css";
 
 import { AuthProvider } from "./context/useAuth";
